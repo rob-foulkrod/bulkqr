@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Gallery | Bulk QR Generator</title>
+    <link rel="stylesheet" href="../static/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-gradient"></div>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                    <rect width="40" height="40" rx="8" fill="url(#gradient)"/>
+                    <path d="M12 12h4v4h-4zm0 8h4v4h-4zm8-8h4v4h-4zm0 8h4v4h-4zm0 8h4v4h-4zm-8 0h4v4h-4zm8-4h4v4h-4z" fill="white"/>
+                    <defs>
+                        <linearGradient id="gradient" x1="0" y1="0" x2="40" y2="40">
+                            <stop stop-color="#6366f1"/>
+                            <stop offset="1" stop-color="#8b5cf6"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <h1>QR Code Gallery</h1>
+            </div>
+            <div class="header-stats">
+                <span class="stat-item">
+                    <span class="stat-number">{{ items|length }}</span>
+                    <span class="stat-label">QR Codes</span>
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="controls">
+            <button class="btn btn-primary" onclick="selectAll()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M2 2h12v12H2z" stroke="currentColor" stroke-width="2"/>
+                    <path d="M5 7l2 2 4-4" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                Select All
+            </button>
+            <button class="btn btn-secondary" onclick="copySelected()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M10 2H4v10h8V4l-2-2z" stroke="currentColor" stroke-width="2"/>
+                    <path d="M10 2v2h2" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                Copy Selected URLs
+            </button>
+            <button class="btn btn-secondary" onclick="downloadSelected()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 2v8m-3-3l3 3 3-3" stroke="currentColor" stroke-width="2"/>
+                    <path d="M3 14h10" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                Download QR Codes
+            </button>
+        </div>
+
+        <div class="qr-grid">
+            {% for url, image in items %}
+            <div class="qr-card" data-url="{{ url }}" data-image="{{ image }}">
+                <div class="qr-card-inner">
+                    <div class="qr-image-wrapper">
+                        <img src="../output/{{ image }}" alt="QR for {{ url }}" class="qr-image">
+                        <div class="qr-overlay">
+                            <button class="action-btn" onclick="copyUrl('{{ url }}')" title="Copy URL">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M13 3H7v12h10V7l-4-4z" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M13 3v4h4" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                            </button>
+                            <button class="action-btn" onclick="downloadQR('{{ image }}')" title="Download QR">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M10 3v10m-4-4l4 4 4-4" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M4 17h12" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="qr-info">
+                        <input type="checkbox" class="qr-checkbox" id="qr-{{ loop.index }}">
+                        <label for="qr-{{ loop.index }}" class="qr-url">{{ url }}</label>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        function selectAll() {
+            const checkboxes = document.querySelectorAll('.qr-checkbox');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+        }
+
+        function copyUrl(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                showToast('URL copied to clipboard!');
+            });
+        }
+
+        function copySelected() {
+            const selected = document.querySelectorAll('.qr-checkbox:checked');
+            if (selected.length === 0) {
+                showToast('No URLs selected!', 'error');
+                return;
+            }
+            
+            const urls = Array.from(selected).map(cb => 
+                cb.nextElementSibling.textContent
+            ).join('\n');
+            
+            navigator.clipboard.writeText(urls).then(() => {
+                showToast(`Copied ${selected.length} URL(s) to clipboard!`);
+            });
+        }
+
+        function downloadQR(imageName) {
+            const link = document.createElement('a');
+            link.href = `../output/${imageName}`;
+            link.download = imageName;
+            link.click();
+        }
+
+        function downloadSelected() {
+            const selected = document.querySelectorAll('.qr-checkbox:checked');
+            if (selected.length === 0) {
+                showToast('No QR codes selected!', 'error');
+                return;
+            }
+            
+            selected.forEach(cb => {
+                const card = cb.closest('.qr-card');
+                const imageName = card.dataset.image;
+                setTimeout(() => downloadQR(imageName), 100);
+            });
+            
+            showToast(`Downloading ${selected.length} QR code(s)...`);
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

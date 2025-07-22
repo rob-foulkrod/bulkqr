@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Gallery | Client Side</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="background-gradient"></div>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                    <rect width="40" height="40" rx="8" fill="url(#gradient)"/>
+                    <path d="M12 12h4v4h-4zm0 8h4v4h-4zm8-8h4v4h-4zm0 8h4v4h-4zm0 8h4v4h-4zm-8 0h4v4h-4zm8-4h4v4h-4z" fill="white"/>
+                    <defs>
+                        <linearGradient id="gradient" x1="0" y1="0" x2="40" y2="40">
+                            <stop stop-color="#6366f1"/>
+                            <stop offset="1" stop-color="#8b5cf6"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <h1>QR Code Gallery (Client Side)</h1>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="controls">
+            <textarea id="urlInput" rows="5" placeholder="Paste URLs here, one per line..."></textarea>
+            <button class="btn btn-primary" onclick="generateQRCodes()">Generate QR Codes</button>
+        </div>
+        <div class="qr-grid" id="qrGrid"></div>
+    </main>
+    <div class="toast" id="toast"></div>
+    <script>
+        function generateQRCodes() {
+            const grid = document.getElementById('qrGrid');
+            grid.innerHTML = '';
+            const urls = document.getElementById('urlInput').value.split(/\r?\n/).map(u => u.trim()).filter(Boolean);
+            if (urls.length === 0) {
+                showToast('Please enter at least one URL.', 'error');
+                return;
+            }
+            urls.forEach((url, idx) => {
+                const card = document.createElement('div');
+                card.className = 'qr-card';
+                card.innerHTML = `
+                    <div class="qr-card-inner">
+                        <div class="qr-image-wrapper" id="qr-img-${idx}"></div>
+                        <div class="qr-info">
+                            <span class="qr-url">${url}</span>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+                new QRCode(document.getElementById(`qr-img-${idx}`), {
+                    text: url,
+                    width: 180,
+                    height: 180,
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            });
+        }
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
