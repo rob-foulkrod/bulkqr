@@ -132,7 +132,12 @@ https://aka.ms/cie02reg
 ---
 
 ## 🖼️ Screenshots
-<img src="static/demo_screenshot.png" alt="QR Gallery Demo" width="700"/>
+
+**Python Version Output:**
+<img src="media/Python-Screenshot.png" alt="Python QR Gallery Output" width="700"/>
+
+**JavaScript Version Output:**
+<img src="media/JavaScript-screenshot.png" alt="JavaScript QR Gallery Output" width="700"/>
 
 ---
 
